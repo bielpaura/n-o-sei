@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loja de Roupas</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 700px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 { text-align: center; }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+    }
+    .hidden { display: none; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .produto {
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 5px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .imagem {
+      width: 100%;
+      height: 100px;
+      background: #ddd;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .topo {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .galeria img {
+      width: 100%;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    .zoom {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="container" id="login">
+  <h2>Login</h2>
+  <input type="text" placeholder="Usuário">
+  <input type="password" placeholder="Senha">
+  <button onclick="entrar()">Entrar</button>
+</div>
+
+<!-- CATÁLOGO -->
+<div class="container hidden" id="catalogo">
+  <div class="topo">
+    <h2>Catálogo</h2>
+    <button onclick="irCarrinho()">Carrinho (<span id="contador">0</span>)</button>
+  </div>
+
+  <div class="grid" id="listaProdutos"></div>
+</div>
+
+<!-- DETALHE PRODUTO -->
+<div class="container hidden" id="detalhe">
+  <h2 id="nomeProduto"></h2>
+
+  <img id="imagemPrincipal" class="zoom" src="" alt="Imagem principal">
+
+  <div class="galeria" id="galeria"></div>
+
+  <button onclick="adicionarAtual()">Adicionar ao Carrinho</button>
+  <button onclick="voltarCatalogo()">Voltar</button>
+</div>
+
+<!-- CARRINHO -->
+<div class="container hidden" id="carrinho">
+  <h2>Carrinho</h2>
+  <div id="itensCarrinho"></div>
+  <p>Total: <span id="totalItens">0</span></p>
+  <button onclick="voltarCatalogo()">Voltar</button>
+</div>
+
+<script>
+  const produtos = [
+    {
+      nome: 'Camiseta', preco: 50,
+      imagens: ['img1.jpg','img2.jpg','img3.jpg'] // COLOQUE SUAS IMAGENS AQUI
+    },
+    {
+      nome: 'Calça', preco: 120,
+      imagens: ['img1.jpg','img2.jpg','img3.jpg']
+    },
+    {
+      nome: 'Jaqueta', preco: 200,
+      imagens: ['img1.jpg','img2.jpg','img3.jpg']
+    },
+    {
+      nome: 'Shorts', preco: 70,
+      imagens: ['img1.jpg','img2.jpg','img3.jpg']
+    },
+    {
+      nome: 'Boné', preco: 40,
+      imagens: ['img1.jpg','img2.jpg','img3.jpg']
+    }
+  ];
+
+  let carrinho = [];
+  let produtoAtual = null;
+
+  function entrar() {
+    document.getElementById('login').classList.add('hidden');
+    document.getElementById('catalogo').classList.remove('hidden');
+    renderProdutos();
+  }
+
+  function renderProdutos() {
+    const lista = document.getElementById('listaProdutos');
+    lista.innerHTML = '';
+
+    produtos.forEach((p, index) => {
+      lista.innerHTML += `
+        <div class="produto" onclick="verDetalhe(${index})">
+          <div class="imagem">Imagem</div>
+          <strong>${p.nome}</strong><br>
+          R$ ${p.preco}
+        </div>
+      `;
+    });
+  }
+
+  function verDetalhe(index) {
+    produtoAtual = produtos[index];
+
+    document.getElementById('catalogo').classList.add('hidden');
+    document.getElementById('detalhe').classList.remove('hidden');
+
+    document.getElementById('nomeProduto').innerText = produtoAtual.nome;
+    document.getElementById('imagemPrincipal').src = produtoAtual.imagens[0];
+
+    const galeria = document.getElementById('galeria');
+    galeria.innerHTML = '';
+
+    produtoAtual.imagens.forEach(img => {
+      galeria.innerHTML += `
+        <img src="${img}" onclick="trocarImagem('${img}')">
+      `;
+    });
+  }
+
+  function trocarImagem(src) {
+    document.getElementById('imagemPrincipal').src = src;
+  }
+
+  function adicionarAtual() {
+    carrinho.push(produtoAtual);
+    atualizarContador();
+  }
+
+  function atualizarContador() {
+    document.getElementById('contador').innerText = carrinho.length;
+  }
+
+  function irCarrinho() {
+    document.getElementById('catalogo').classList.add('hidden');
+    document.getElementById('carrinho').classList.remove('hidden');
+    renderCarrinho();
+  }
+
+  function renderCarrinho() {
+    const area = document.getElementById('itensCarrinho');
+    area.innerHTML = '';
+
+    carrinho.forEach((item, index) => {
+      area.innerHTML += `
+        <div>
+          ${item.nome} - R$ ${item.preco}
+          <button onclick="removerItem(${index})">Remover</button>
+        </div>
+      `;
+    });
+
+    document.getElementById('totalItens').innerText = carrinho.length;
+  }
+
+  function removerItem(index) {
+    carrinho.splice(index, 1);
+    atualizarContador();
+    renderCarrinho();
+  }
+
+  function voltarCatalogo() {
+    document.getElementById('detalhe').classList.add('hidden');
+    document.getElementById('carrinho').classList.add('hidden');
+    document.getElementById('catalogo').classList.remove('hidden');
+  }
+</script>
+
+</body>
+</html>
+
